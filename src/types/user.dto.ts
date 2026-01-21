@@ -20,3 +20,10 @@ export interface UserPage {
   last: boolean;
   empty: boolean;
 }
+
+export interface GetUsersParams {
+  page?: number;
+  size?: number;
+  firstName?: string;
+  surname?: string;
+}

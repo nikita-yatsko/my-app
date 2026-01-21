@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = tokenStorage.getAccessToken(); // ваш метод
+  const token = tokenStorage.getAccessToken();
 
   if (token) {
     config.headers = config.headers ?? {};

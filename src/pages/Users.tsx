@@ -8,17 +8,28 @@ export default function Users() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Поля для поиска
+  const [firstName, setFirstName] = useState("");
+  const [surname, setSurname] = useState("");
+
+  // Пагинация
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 10;
+
   const navigate = useNavigate();
 
-  const currentPage = page?.number ?? 0;
-  const totalPages = page?.totalPages ?? 0;
-
-  const fetchUsers = async (pageNumber: number) => {
+  // Функция загрузки пользователей
+  const fetchUsers = async (searchFirstName = firstName, searchSurname = surname) => {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await getUsers(pageNumber, 10);
+      const data = await getUsers({
+        page: currentPage,
+        size: pageSize,
+        firstName: searchFirstName.trim() || undefined,
+        surname: searchSurname.trim() || undefined,
+      });
       setPage(data);
     } catch (e: any) {
       setError(e.message || "Failed to load users");
@@ -27,19 +38,76 @@ export default function Users() {
     }
   };
 
+  // Загружаем всех пользователей при первом открытии страницы
   useEffect(() => {
-    fetchUsers(0);
+    fetchUsers();
   }, []);
+
+  // Поиск по кнопке
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(0);
+    fetchUsers();
+  };
+
+  // Очистка фильтров — сразу сбрасываем и отправляем запрос с пустыми значениями
+  const handleClear = () => {
+    setFirstName("");
+    setSurname("");
+    setCurrentPage(0);
+
+    // Передаём пустые значения напрямую — не ждём обновления состояния
+    fetchUsers("", "");
+  };
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (error) return <div className="alert alert-danger mt-5">{error}</div>;
+
+  const totalPages = page?.totalPages ?? 0;
 
   return (
     <div className="container mt-5">
       <h2 className="mb-4">Users</h2>
 
-      <table className="table table-bordered">
-        <thead>
+      {/* Форма поиска */}
+      <form onSubmit={handleSearch} className="mb-4">
+        <div className="row g-3">
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="First Name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Surname"
+              value={surname}
+              onChange={(e) => setSurname(e.target.value)}
+            />
+          </div>
+          <div className="col-md-4 d-flex gap-2">
+            <button type="submit" className="btn btn-primary">
+              Search
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleClear}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {/* Таблица */}
+      <table className="table table-bordered table-hover">
+        <thead className="table-light">
           <tr>
             <th>UserId</th>
             <th>Name</th>
@@ -50,7 +118,6 @@ export default function Users() {
             <th>CreatedAt</th>
           </tr>
         </thead>
-
         <tbody>
           {page?.content?.map((user: User) => (
             <tr
@@ -70,28 +137,37 @@ export default function Users() {
         </tbody>
       </table>
 
-      {/* Pagination */}
-      <div className="d-flex justify-content-between">
-        <button
-          className="btn btn-secondary"
-          disabled={currentPage === 0}
-          onClick={() => fetchUsers(currentPage - 1)}
-        >
-          Previous
-        </button>
-
-        <div>
-          Page {currentPage + 1} / {totalPages}
+      {/* Если ничего не найдено */}
+      {page?.content?.length === 0 && !loading && (
+        <div className="text-center text-muted mt-4">
+          No users found
         </div>
+      )}
 
-        <button
-          className="btn btn-secondary"
-          disabled={page?.last}
-          onClick={() => fetchUsers(currentPage + 1)}
-        >
-          Next
-        </button>
-      </div>
+      {/* Пагинация */}
+      {page && (
+        <div className="d-flex justify-content-between align-items-center mt-4">
+          <button
+            className="btn btn-secondary"
+            disabled={currentPage === 0}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Previous
+          </button>
+
+          <div>
+            Page {currentPage + 1} of {totalPages}
+          </div>
+
+          <button
+            className="btn btn-secondary"
+            disabled={currentPage >= totalPages - 1}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

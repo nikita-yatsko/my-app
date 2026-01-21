@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 import { User } from "../types/user.dto";
-import { getUserById, deleteUser } from "../api/userApi";
+import { getUserById, deleteUser, activateUser, deactivateUser } from "../api/userApi";
 import { useAuth } from "../auth/AuthContext";
 
 export default function UserDetails() {
@@ -47,6 +47,27 @@ export default function UserDetails() {
     }
   };
 
+  const handleToggleActive = async () => {
+  if (!id || !user) return;
+
+  const isCurrentlyActive = user.active === "ACTIVE";
+  const action = isCurrentlyActive ? "deactivate" : "activate";
+
+  try {
+    if (isCurrentlyActive) {
+      await deactivateUser(Number(id)); 
+    } else {
+      await activateUser(Number(id));  
+    }
+
+    const updated = await getUserById(Number(id));
+    setUser(updated);
+
+  } catch (e: any) {
+    setError(e.message || `Failed to ${action} user`);
+  }
+};
+
   if (loading || authLoading) {
     return <div className="text-center mt-5">Loading...</div>;
   }
@@ -89,7 +110,7 @@ export default function UserDetails() {
               <p><b>Updated at:</b> {user.updatedAt}</p>
 
               <div className="mt-3 d-flex gap-2">
-                <button className="btn btn-warning">
+                <button className="btn btn-warning" onClick={handleToggleActive}>
                   {user.active === "ACTIVE" ? "Deactivate" : "Activate"}
                 </button>
 
