@@ -5,8 +5,8 @@ const BASE_URL = "/api/user";
 
 export async function getUsers(params: GetUsersParams = {}): Promise<UserPage> {
   const {
-    page = 0,          // по умолчанию первая страница
-    size = 10,         // по умолчанию 10 записей на странице
+    page = 0,         
+    size = 10,        
     firstName,
     surname,
   } = params;
@@ -16,7 +16,7 @@ export async function getUsers(params: GetUsersParams = {}): Promise<UserPage> {
       params: {
         page,
         size,
-        ...(firstName && { firstName }),   // добавляем только если указано
+        ...(firstName && { firstName }),  
         ...(surname && { surname }),
       },
     });
@@ -24,7 +24,7 @@ export async function getUsers(params: GetUsersParams = {}): Promise<UserPage> {
     return response.data;
   } catch (error) {
     console.error('Ошибка при получении пользователей:', error);
-    throw error; // или можно обработать ошибку по-другому
+    throw error; 
   }
 }
 

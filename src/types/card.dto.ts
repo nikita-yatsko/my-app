@@ -1,16 +1,15 @@
-export interface User {
-  userId: number;
-  name: string;
-  surname: string;
-  birthDate: string;
-  email: string;
+export interface Card {
+  id: number;
+  number: string;
+  holder: string;
+  expirationDate: string;
   active: "ACTIVE" | "INACTIVE";
   createdAt: string;
   updatedAt: string;
 }
 
-export interface UserPage {
-  content: User[];
+export interface CardPage {
+  content: Card[];
   totalPages: number;
   totalElements: number;
   size: number;
@@ -21,9 +20,8 @@ export interface UserPage {
   empty: boolean;
 }
 
-export interface GetUsersParams {
-  page?: number;
-  size?: number;
+export interface GetCardsParams {
+  holder?: string;
   firstName?: string;
   surname?: string;
 }

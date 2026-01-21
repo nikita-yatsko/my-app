@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Users from "./pages/Users";
-import UserDetails from "./pages/UserDetails";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Users from "./pages/user/Users";
+import UserDetails from "./pages/user/UserDetails";
 import RequireRole from "./auth/RequireRole";
 
 import { useNavigate } from "react-router-dom";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../api/authApi";
-import { tokenStorage } from "../auth/tokenStorage";
+import { login } from "../../api/authApi";
+import { tokenStorage } from "../../auth/tokenStorage";
 
 export default function Login() {
   const [username, setUsername] = useState("");
