@@ -7,3 +7,8 @@ export async function createOrder(data: CreateOrderRequest) {
   const response = await api.post(`${BASE_URL}/create`, data);
   return response.data;
 }
+
+export async function getOrdersByUserId(userId: number) {
+  const response = await api.get(`${BASE_URL}/user/${userId}`);
+  return response.data;
+}

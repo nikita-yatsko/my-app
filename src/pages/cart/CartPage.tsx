@@ -1,19 +1,27 @@
 import { useCart } from "../../cart/CartContext";
 import { useAuth } from "../../auth/AuthContext";
-import { createOrder } from "../../api/orderApi";
+import { createOrder, getOrdersByUserId } from "../../api/orderApi";
 import { extractErrorMessage } from "../../utils/errorUtils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CartPage() {
   const { cart, updateQuantity, clearCart } = useCart();
   const { user } = useAuth();
 
+  const [orders, setOrders] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const totalPrice = cart.reduce(
     (sum, c) => sum + c.item.price * c.quantity,
     0
   );
+
+  // Load user orders
+  useEffect(() => {
+    if (user) loadOrders();
+
+    loadOrders();
+  }, [user]);
 
   const increaseQuantity = (itemId: number) => {
     const item = cart.find(c => c.item.id === itemId);
@@ -27,29 +35,51 @@ export default function CartPage() {
     updateQuantity(itemId, item.quantity - 1);
   };
 
-  const handleCreateOrder = async () => {
-    try {
-      await createOrder({
-        userId: user!.userId,
-        totalPrice,
-        items: cart.map(c => ({
-          item: c.item,
-          quantity: c.quantity
-        }))
-      });
+  const loadOrders = async () => {
+    if (!user) return; 
 
-      clearCart();
+    try {
+        const data = await getOrdersByUserId(user.userId);
+        setOrders(data);
     } catch (e: any) {
-      setError(extractErrorMessage(e));
+        setError(extractErrorMessage(e));
     }
   };
 
+  useEffect(() => {
+    loadOrders();
+  }, [user]);
+
+
+  const handleCreateOrder = async () => {
+    try {
+        await createOrder({
+        userId: user!.userId,
+        totalPrice,
+        items: cart.map(c => ({
+            item: c.item,
+            quantity: c.quantity
+        }))
+        });
+
+        clearCart();
+        await loadOrders();
+
+    } catch (e: any) {
+        setError(extractErrorMessage(e));
+    }
+    };
+
+
+
   return (
     <div className="container mt-5" style={{ maxWidth: "750px" }}>
+      {/* CART TITLE */}
       <h2 className="fw-bold mb-4" style={{ color: "#4e54c8" }}>
         Your Cart
       </h2>
 
+      {/* CART CONTENT */}
       {cart.length === 0 ? (
         <p className="text-muted">Cart is empty</p>
       ) : (
@@ -74,7 +104,6 @@ export default function CartPage() {
                 </div>
 
                 <div className="d-flex align-items-center gap-2">
-                  {/* minus */}
                   <button
                     className="btn"
                     style={{
@@ -87,7 +116,6 @@ export default function CartPage() {
                     –
                   </button>
 
-                  {/* quantity */}
                   <span
                     className="fw-bold fs-5 px-3 py-1 rounded"
                     style={{
@@ -100,7 +128,6 @@ export default function CartPage() {
                     {c.quantity}
                   </span>
 
-                  {/* plus */}
                   <button
                     className="btn"
                     style={{
@@ -113,7 +140,6 @@ export default function CartPage() {
                     +
                   </button>
 
-                  {/* total for item */}
                   <span
                     className="fw-bold ms-3"
                     style={{ color: "#4e54c8", fontSize: "1.2rem" }}
@@ -125,7 +151,9 @@ export default function CartPage() {
             ))}
           </div>
 
-          <div className="d-flex justify-content-between align-items-center mt-4 p-3 rounded-4 shadow-sm"
+          {/* TOTAL + CREATE ORDER */}
+          <div
+            className="d-flex justify-content-between align-items-center mt-4 p-3 rounded-4 shadow-sm"
             style={{
               background: "linear-gradient(135deg, #4e54c8, #8f94fb)",
               color: "white"
@@ -144,7 +172,49 @@ export default function CartPage() {
         </>
       )}
 
-      {/* Toast error */}
+      {/* ORDERS TITLE */}
+      <h3 className="fw-bold mt-5 mb-3" style={{ color: "#4e54c8" }}>
+        Your Orders
+      </h3>
+
+      {/* ORDERS LIST */}
+      {orders.length === 0 ? (
+        <p className="text-muted">You have no orders yet</p>
+      ) : (
+        <div className="list-group">
+          {orders.map(o => (
+            <div
+              key={o.orderDto.id}
+              className="list-group-item rounded-4 mb-3 shadow-sm"
+              style={{
+                background: "linear-gradient(135deg, #fff, #f3f4ff)",
+                borderLeft: "6px solid #8f94fb"
+              }}
+            >
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 className="fw-bold" style={{ color: "#4e54c8" }}>
+                    Order #{o.orderDto.id}
+                  </h5>
+                  <p className="mb-0 text-muted">
+                    Status:{" "}
+                    <span className="fw-semibold">{o.orderDto.status}</span>
+                  </p>
+                </div>
+
+                <span
+                  className="fw-bold"
+                  style={{ color: "#ff8c42", fontSize: "1.2rem" }}
+                >
+                  ${o.orderDto.totalPrice}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ERROR TOAST */}
       <div
         className="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3"
         role="alert"
