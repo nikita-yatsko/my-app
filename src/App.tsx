@@ -8,6 +8,8 @@ import RequireRole from "./auth/RequireRole";
 import Items from "./pages/item/Items";
 import AddItem from "./pages/item/AddItem";
 
+import CartPage from "./pages/cart/CartPage";
+
 import { useNavigate } from "react-router-dom";
 
 
@@ -40,6 +42,8 @@ export default function App() {
 
         <Route path="/items" element={<Items />} />
         <Route path="/items/add" element={<AddItem />} />
+
+        <Route path="/cart" element={<CartPage />} />
 
 
         <Route path="/profile" element={<Profile />} />

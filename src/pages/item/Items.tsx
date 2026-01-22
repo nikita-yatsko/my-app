@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 import { deleteItem } from "../../api/itemApi";
+import { useCart } from "../../cart/CartContext";
 
 export default function Items() {
   const [items, setItems] = useState<Item[]>([]);
@@ -13,6 +14,7 @@ export default function Items() {
   const [error, setError] = useState<string | null>(null);
   const { user: authUser } = useAuth();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const role = authUser?.role;
 
@@ -128,7 +130,7 @@ export default function Items() {
 
                     {/* Button */}
                     {role === "USER" && (
-                    <button className="btn btn-light text-primary fw-bold mt-3">
+                    <button className="btn btn-light text-primary fw-bold mt-3" onClick={() => addToCart(item)}>
                         Add item
                     </button>
                     )}
