@@ -41,7 +41,7 @@ export default function App() {
         <Route path="/user/:id" element={<UserDetails />} />
 
         <Route path="/items" element={<Items />} />
-        <Route path="/items/add" element={<AddItem />} />
+        <Route path="/items/add" element={ <RequireRole role="ADMIN"> <AddItem /> </RequireRole>} />
 
         <Route path="/cart" element={<CartPage />} />
 

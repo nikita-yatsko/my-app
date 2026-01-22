@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { createOrder, getOrdersByUserId } from "../../api/orderApi";
 import { extractErrorMessage } from "../../utils/errorUtils";
 import { useEffect, useState } from "react";
+import PaymentModal from "../../pages/payment/PaymentModal";
 
 export default function CartPage() {
   const { cart, updateQuantity, clearCart } = useCart();
@@ -10,17 +11,31 @@ export default function CartPage() {
 
   const [orders, setOrders] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [paymentOrder, setPaymentOrder] = useState<any | null>(null);
+
+  const [paymentResult, setPaymentResult] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const totalPrice = cart.reduce(
     (sum, c) => sum + c.item.price * c.quantity,
     0
   );
 
-  // Load user orders
+  const loadOrders = async () => {
+    if (!user) return;
+
+    try {
+      const data = await getOrdersByUserId(user.userId);
+      setOrders(data);
+    } catch (e: any) {
+      setError(extractErrorMessage(e));
+    }
+  };
+
   useEffect(() => {
     if (user) loadOrders();
-
-    loadOrders();
   }, [user]);
 
   const increaseQuantity = (itemId: number) => {
@@ -35,51 +50,34 @@ export default function CartPage() {
     updateQuantity(itemId, item.quantity - 1);
   };
 
-  const loadOrders = async () => {
-    if (!user) return; 
-
-    try {
-        const data = await getOrdersByUserId(user.userId);
-        setOrders(data);
-    } catch (e: any) {
-        setError(extractErrorMessage(e));
-    }
-  };
-
-  useEffect(() => {
-    loadOrders();
-  }, [user]);
-
-
   const handleCreateOrder = async () => {
     try {
-        await createOrder({
+      await createOrder({
         userId: user!.userId,
         totalPrice,
         items: cart.map(c => ({
-            item: c.item,
-            quantity: c.quantity
+          item: c.item,
+          quantity: c.quantity
         }))
-        });
+      });
 
-        clearCart();
-        await loadOrders();
-
+      clearCart();
+      await loadOrders();
     } catch (e: any) {
-        setError(extractErrorMessage(e));
+      setError(extractErrorMessage(e));
     }
-    };
+  };
 
-
+  if (!user) {
+    return <p className="text-muted">You must be logged in to view this page.</p>;
+  }
 
   return (
     <div className="container mt-5" style={{ maxWidth: "750px" }}>
-      {/* CART TITLE */}
       <h2 className="fw-bold mb-4" style={{ color: "#4e54c8" }}>
         Your Cart
       </h2>
 
-      {/* CART CONTENT */}
       {cart.length === 0 ? (
         <p className="text-muted">Cart is empty</p>
       ) : (
@@ -151,7 +149,6 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* TOTAL + CREATE ORDER */}
           <div
             className="d-flex justify-content-between align-items-center mt-4 p-3 rounded-4 shadow-sm"
             style={{
@@ -172,12 +169,10 @@ export default function CartPage() {
         </>
       )}
 
-      {/* ORDERS TITLE */}
       <h3 className="fw-bold mt-5 mb-3" style={{ color: "#4e54c8" }}>
         Your Orders
       </h3>
 
-      {/* ORDERS LIST */}
       {orders.length === 0 ? (
         <p className="text-muted">You have no orders yet</p>
       ) : (
@@ -202,33 +197,75 @@ export default function CartPage() {
                   </p>
                 </div>
 
-                <span
-                  className="fw-bold"
-                  style={{ color: "#ff8c42", fontSize: "1.2rem" }}
-                >
-                  ${o.orderDto.totalPrice}
-                </span>
+                <div className="d-flex align-items-center gap-3">
+                  <span
+                    className="fw-bold"
+                    style={{ color: "#ff8c42", fontSize: "1.2rem" }}
+                  >
+                    ${o.orderDto.totalPrice}
+                  </span>
+
+                  {o.orderDto.status === "CREATED" && (
+                    <button
+                      className="btn btn-success fw-bold"
+                      onClick={() => setPaymentOrder(o.orderDto)}
+                    >
+                      Pay
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* ERROR TOAST */}
-      <div
-        className="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3"
-        role="alert"
-        style={{ display: error ? "block" : "none" }}
-      >
-        <div className="d-flex">
-          <div className="toast-body">{error}</div>
-          <button
-            type="button"
-            className="btn-close btn-close-white me-2 m-auto"
-            onClick={() => setError(null)}
-          ></button>
+      {error && (
+        <div
+          className="toast align-items-center text-bg-danger border-0 position-fixed bottom-0 end-0 m-3"
+          role="alert"
+          style={{ display: "block" }}
+        >
+          <div className="d-flex">
+            <div className="toast-body">{error}</div>
+            <button
+              type="button"
+              className="btn-close btn-close-white me-2 m-auto"
+              onClick={() => setError(null)}
+            ></button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {paymentOrder && (
+        <PaymentModal
+          order={paymentOrder}
+          userId={user.userId}
+          onClose={() => setPaymentOrder(null)}
+          onSuccess={loadOrders}
+          setPaymentResult={setPaymentResult}
+        />
+      )}
+
+      {paymentResult && (
+        <div
+          className={`toast align-items-center border-0 position-fixed bottom-0 end-0 m-3 
+            ${paymentResult.type === "success" ? "text-bg-success" : "text-bg-danger"}`}
+          role="alert"
+          style={{ display: "block" }}
+        >
+          <div className="d-flex">
+            <div className="toast-body">
+              {paymentResult.message}
+            </div>
+            <button
+              type="button"
+              className="btn-close btn-close-white me-2 m-auto"
+              onClick={() => setPaymentResult(null)}
+            ></button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
