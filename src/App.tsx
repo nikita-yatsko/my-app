@@ -5,7 +5,11 @@ import Users from "./pages/user/Users";
 import UserDetails from "./pages/user/UserDetails";
 import RequireRole from "./auth/RequireRole";
 
+import Items from "./pages/item/Items";
+import AddItem from "./pages/item/AddItem";
+
 import { useNavigate } from "react-router-dom";
+
 
 function Profile() {
   const navigate = useNavigate();
@@ -33,6 +37,9 @@ export default function App() {
 
         <Route path="/users" element={ <RequireRole role="ADMIN"> <Users /> </RequireRole>}/>
         <Route path="/user/:id" element={<UserDetails />} />
+
+        <Route path="/items" element={<Items />} />
+        <Route path="/items/add" element={<AddItem />} />
 
 
         <Route path="/profile" element={<Profile />} />
