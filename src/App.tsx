@@ -9,45 +9,27 @@ import Items from "./pages/item/Items";
 import AddItem from "./pages/item/AddItem";
 
 import CartPage from "./pages/cart/CartPage";
-
-import { useNavigate } from "react-router-dom";
-
-
-function Profile() {
-  const navigate = useNavigate();
-
-  return (
-    <div className="container mt-5">
-      <h1>Profile page</h1>
-
-      <button
-        className="btn btn-primary mt-3"
-        onClick={() => navigate("/users")}
-        >
-        Go to Users
-      </button>
-    </div>
-  );
-}
+import Layout from "./utils/Layout";
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
-        <Route path="/users" element={ <RequireRole role="ADMIN"> <Users /> </RequireRole>}/>
-        <Route path="/user/:id" element={<UserDetails />} />
-
-        <Route path="/items" element={<Items />} />
-        <Route path="/items/add" element={ <RequireRole role="ADMIN"> <AddItem /> </RequireRole>} />
-
-        <Route path="/cart" element={<CartPage />} />
+      <Layout>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
 
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
+          <Route path="/users" element={ <RequireRole roles={["ADMIN"]}> <Users /> </RequireRole>}/>
+          <Route path="/user/:id" element={ <RequireRole roles={["ADMIN"]}> <UserDetails /> </RequireRole> } />
+          <Route path="/account" element={<RequireRole roles={["USER", "ADMIN"]}> <UserDetails /> </RequireRole>} />
+
+          <Route path="/items" element={<RequireRole roles={["ADMIN", "USER"]}> <Items /> </RequireRole>} />
+          <Route path="/items/add" element={ <RequireRole roles={["ADMIN"]}> <AddItem /> </RequireRole>} />
+
+          <Route path="/cart" element={<CartPage />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   );
 }

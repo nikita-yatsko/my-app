@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../api/authApi";
+import { login as apiLogin } from "../../api/authApi";
 import { tokenStorage } from "../../auth/tokenStorage";
+import { useAuth } from "../../auth/AuthContext";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -10,6 +11,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { user, login: authLogin } = useAuth();
+
+  // 🔥 Если пользователь уже залогинен — сразу уводим
+  useEffect(() => {
+    if (user) {
+      navigate("/items");
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,18 +32,32 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const { accessToken, refreshToken } = await login({
+      // API login
+      const { accessToken, refreshToken } = await apiLogin({
         username,
         password
       });
 
+      // сохраняем токены
       tokenStorage.setTokens(accessToken, refreshToken);
 
-      navigate("/profile");
+      // 🔥 обновляем user в AuthContext
+      await authLogin(accessToken);
+
+      // редирект произойдёт автоматически через useEffect
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Login failed");
-    } finally {
+
+      const serverMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.response?.data ||
+        "Login failed";
+
+      setError(serverMessage);
+    }
+
+    finally {
       setLoading(false);
     }
   };
@@ -91,7 +114,6 @@ export default function Login() {
                 </small>
               </div>
 
-              {/* Новая кнопка регистрации */}
               <div className="text-center mt-3">
                 <button
                   className="btn btn-link"

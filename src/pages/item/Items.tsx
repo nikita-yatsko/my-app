@@ -12,7 +12,7 @@ export default function Items() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user: authUser } = useAuth();
+  const { user: authUser, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -45,6 +45,10 @@ export default function Items() {
       }
     };
 
+  if (loading || authLoading) {
+    return <div className="text-center mt-5">Loading...</div>;
+  }
+  
   return (
     <div className="container mt-5">
 

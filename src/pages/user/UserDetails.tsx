@@ -12,28 +12,35 @@ import { getCardsByUserId, deleteCard, deactivateCard, activateCard, createCard 
 export default function UserDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user: authUser, loading: authLoading } = useAuth();
+  const { user: authUser, loading: authLoading, logout } = useAuth();
+
+  if (!authUser && !id) {
+    navigate("/login");
+    return null;
+  }
+
+// безопасное вычисление ID
+  const userIdToLoad = id ? Number(id) : authUser!.userId;
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [cards, setCards] = useState<Card[]>([]);
-
   const role = authUser?.role;
 
   useEffect(() => {
-    if (!id) return;
+    if (!authUser) return;
 
     const fetchUser = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        const data = await getUserById(Number(id));
+        const data = await getUserById(userIdToLoad);
         setUser(data);
 
-        const userCards = await getCardsByUserId(Number(id));
+        const userCards = await getCardsByUserId(userIdToLoad);
         setCards(userCards);
 
       } catch (e: any) {
@@ -44,19 +51,19 @@ export default function UserDetails() {
     };
 
     fetchUser();
-  }, [id]);
+  }, [authUser, id]);
 
+  // Удаление пользователя (только админ)
   const handleDeleteUser = async () => {
-    if (!id) return;
-
     try {
-      await deleteUser(Number(id));
+      await deleteUser(userIdToLoad);
       navigate("/users");
     } catch (e: any) {
       setError(extractErrorMessage(e));
     }
   };
 
+  // Удаление карты
   const handleDeleteCard = async (cardId: number) => {
     try {
       await deleteCard(cardId);
@@ -66,19 +73,20 @@ export default function UserDetails() {
     }
   };
 
+  // Активация/деактивация пользователя
   const handleToggleActiveUser = async () => {
-    if (!id || !user) return;
+    if (!user) return;
 
     const isActive = user.active === "ACTIVE";
 
     try {
       if (isActive) {
-        await deactivateUser(Number(id));
+        await deactivateUser(userIdToLoad);
       } else {
-        await activateUser(Number(id));
+        await activateUser(userIdToLoad);
       }
 
-      const updated = await getUserById(Number(id));
+      const updated = await getUserById(userIdToLoad);
       setUser(updated);
 
     } catch (e: any) {
@@ -86,6 +94,7 @@ export default function UserDetails() {
     }
   };
 
+  // Активация/деактивация карты
   const handleToggleActiveCard = async (cardId: number) => {
     const card = cards.find(c => c.id === cardId);
     if (!card) return;
@@ -99,8 +108,7 @@ export default function UserDetails() {
         await activateCard(cardId);
       }
 
-      // Обновляем список карт
-      const updatedCards = await getCardsByUserId(Number(id));
+      const updatedCards = await getCardsByUserId(userIdToLoad);
       setCards(updatedCards);
 
     } catch (e: any) {
@@ -108,19 +116,17 @@ export default function UserDetails() {
     }
   };
 
+  // Создание карты
   const handleCreateCard = async () => {
-    if (!id) return;
+    try {
+      await createCard(userIdToLoad);
 
-      try {
-        await createCard(Number(id));
+      const updatedCards = await getCardsByUserId(userIdToLoad);
+      setCards(updatedCards);
 
-        // обновляем список карт
-        const updatedCards = await getCardsByUserId(Number(id));
-        setCards(updatedCards);
-
-      } catch (e: any) {
-        setError(extractErrorMessage(e));
-      }
+    } catch (e: any) {
+      setError(extractErrorMessage(e));
+    }
   };
 
   if (loading || authLoading) {
@@ -131,10 +137,27 @@ export default function UserDetails() {
 
   const birthYear = user.birthDate ? new Date(user.birthDate).getFullYear() : "";
 
+
   return (
     <div className="container mt-5">
 
-      <h2 className="mb-4 fw-bold">User Details</h2>
+      {/* Заголовок + Logout */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="fw-bold">User Details</h2>
+
+        {/* Logout только на /account */}
+        {!id && (
+          <button
+            className="btn btn-danger fw-bold"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            Logout
+          </button>
+        )}
+      </div>
 
       {/* USER CARD */}
       <div className="card shadow-lg border-0 rounded-4 mb-5">
@@ -185,10 +208,9 @@ export default function UserDetails() {
         <h3 className="fw-bold">User Cards</h3>
 
         <button className="btn btn-primary" onClick={handleCreateCard}>
-            + Create Card
-          </button>
+          + Create Card
+        </button>
       </div>
-
 
       {cards.length === 0 ? (
         <p className="text-muted">No cards found</p>
@@ -252,7 +274,6 @@ export default function UserDetails() {
                     <>
                       <hr className="border-light" />
 
-                      {/* Кнопка активации/деактивации карты */}
                       <button
                         className={`btn ${card.active === "ACTIVE" ? "btn-warning" : "btn-success"} w-100 mt-2`}
                         onClick={() => handleToggleActiveCard(card.id)}
@@ -260,7 +281,6 @@ export default function UserDetails() {
                         {card.active === "ACTIVE" ? "Deactivate card" : "Activate card"}
                       </button>
 
-                      {/* Кнопка удаления */}
                       <button
                         className="btn btn-danger w-100 mt-2"
                         onClick={() => handleDeleteCard(card.id)}
