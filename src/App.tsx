@@ -10,6 +10,8 @@ import AddItem from "./pages/item/AddItem";
 
 import CartPage from "./pages/cart/CartPage";
 import Layout from "./utils/Layout";
+import AdminOrdersPage from "./pages/order/AdminOrdersPage";
+import OrderDetailsPage from "./pages/order/OrderDetailsPage";
 
 export default function App() {
   return (
@@ -26,6 +28,9 @@ export default function App() {
 
           <Route path="/items" element={<RequireRole roles={["ADMIN", "USER"]}> <Items /> </RequireRole>} />
           <Route path="/items/add" element={ <RequireRole roles={["ADMIN"]}> <AddItem /> </RequireRole>} />
+
+          <Route path="/orders" element={ <RequireRole roles={["ADMIN"]}> <AdminOrdersPage /> </RequireRole>} />
+          <Route path="/order/:id" element={ <RequireRole roles={["ADMIN", "USER"]}> <OrderDetailsPage /> </RequireRole>} />
 
           <Route path="/cart" element={<CartPage />} />
         </Routes>

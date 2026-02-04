@@ -32,6 +32,12 @@ export default function Navbar() {
             </Link>
           )}
 
+          {user?.role === "ADMIN" && (
+            <Link to="/orders" className="btn btn-light fw-bold" style={{ color: "#4e54c8" }} >
+              Orders
+            </Link>
+          )}
+
           <Link
             to="/items"
             className="btn btn-light fw-bold"

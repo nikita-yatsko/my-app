@@ -15,12 +15,15 @@ export default function Users() {
 
   // Пагинация
   const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 10;
+  const pageSize = 1;
 
   const navigate = useNavigate();
 
   // Функция загрузки пользователей
-  const fetchUsers = async (searchFirstName = firstName, searchSurname = surname) => {
+  const fetchUsers = async (
+    searchFirstName = firstName,
+    searchSurname = surname
+  ) => {
     setLoading(true);
     setError(null);
 
@@ -28,9 +31,10 @@ export default function Users() {
       const data = await getUsers({
         page: currentPage,
         size: pageSize,
-        firstName: searchFirstName.trim() || undefined,
-        surname: searchSurname.trim() || undefined,
+        firstName: searchFirstName,
+        surname: searchSurname,
       });
+
       setPage(data);
     } catch (e: any) {
       setError(extractErrorMessage(e));
@@ -39,27 +43,30 @@ export default function Users() {
     }
   };
 
-  // Загружаем всех пользователей при первом открытии страницы
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentPage]);
 
-  // Поиск по кнопке
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, firstName, surname]);
+
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(0);
-    fetchUsers();
+    fetchUsers(firstName, surname);
   };
 
-  // Очистка фильтров — сразу сбрасываем и отправляем запрос с пустыми значениями
   const handleClear = () => {
     setFirstName("");
     setSurname("");
     setCurrentPage(0);
-
-    // Передаём пустые значения напрямую — не ждём обновления состояния
     fetchUsers("", "");
   };
+
+
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
   if (error) return <div className="alert alert-danger mt-5">{error}</div>;

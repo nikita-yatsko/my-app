@@ -3,12 +3,12 @@ import { User, UserPage, GetUsersParams } from "../types/user.dto";
 
 const BASE_URL = "/api/user";
 
-export async function getUsers(params: GetUsersParams = {}): Promise<UserPage> {
+export async function getUsers(params: GetUsersParams): Promise<UserPage> {
   const {
-    page = 0,         
-    size = 10,        
-    firstName,
-    surname,
+    page,
+    size,
+    firstName = "",
+    surname = "",
   } = params;
 
   try {
@@ -16,17 +16,18 @@ export async function getUsers(params: GetUsersParams = {}): Promise<UserPage> {
       params: {
         page,
         size,
-        ...(firstName && { firstName }),  
-        ...(surname && { surname }),
+        firstName: firstName.trim() || null,
+        surname: surname.trim() || null,
       },
     });
 
     return response.data;
   } catch (error) {
-    console.error('Ошибка при получении пользователей:', error);
-    throw error; 
+    console.error("Ошибка при получении пользователей:", error);
+    throw error;
   }
 }
+
 
 export async function getUserById(id: number): Promise<User> {
   const response = await api.get<User>(`${BASE_URL}/${id}`);
