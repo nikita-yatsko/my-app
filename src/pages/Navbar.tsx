@@ -16,7 +16,7 @@ export default function Navbar() {
 
         {/* ЛОГО */}
         <Link
-          to="/"
+          to="/items"
           className="navbar-brand fw-bold text-white"
           style={{ fontSize: "1.4rem" }}
         >
@@ -44,6 +44,14 @@ export default function Navbar() {
             style={{ color: "#4e54c8" }}
           >
             Items
+          </Link>
+
+          <Link
+            to="/payments"
+            className="btn btn-light fw-bold"
+            style={{ color: "#4e54c8" }}
+          >
+            Payments
           </Link>
 
           <Link

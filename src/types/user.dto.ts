@@ -23,7 +23,7 @@ export interface UserPage {
 
 export interface GetUsersParams {
   page?: number;
-  size?: number;
+  limit?: number;
   firstName?: string;
   surname?: string;
 }

@@ -12,6 +12,7 @@ import CartPage from "./pages/cart/CartPage";
 import Layout from "./utils/Layout";
 import AdminOrdersPage from "./pages/order/AdminOrdersPage";
 import OrderDetailsPage from "./pages/order/OrderDetailsPage";
+import PaymentsPage from "./pages/payment/PaymentsPage";
 
 export default function App() {
   return (
@@ -31,6 +32,8 @@ export default function App() {
 
           <Route path="/orders" element={ <RequireRole roles={["ADMIN"]}> <AdminOrdersPage /> </RequireRole>} />
           <Route path="/order/:id" element={ <RequireRole roles={["ADMIN", "USER"]}> <OrderDetailsPage /> </RequireRole>} />
+
+          <Route path="/payments" element={ <RequireRole roles={["ADMIN", "USER"]}> <PaymentsPage /> </RequireRole>} />
 
           <Route path="/cart" element={<CartPage />} />
         </Routes>

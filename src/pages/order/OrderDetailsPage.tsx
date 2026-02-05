@@ -4,7 +4,6 @@ import { getOrderById, updateOrder } from "../../api/orderApi";
 import { OrderResponse } from "../../types/order.dto";
 import { useAuth } from "../../auth/AuthContext";
 
-
 export default function OrderDetailsPage() {
   const { id } = useParams();
   const [order, setOrder] = useState<OrderResponse | null>(null);
@@ -14,11 +13,17 @@ export default function OrderDetailsPage() {
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
 
+  // Toast state
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   useEffect(() => {
     if (!id) return;
 
     getOrderById(Number(id))
-      .then(data => {
+      .then((data) => {
         setOrder(data);
         setItems(data.orderDto.items);
         setLoading(false);
@@ -30,7 +35,8 @@ export default function OrderDetailsPage() {
   }, [id]);
 
   if (loading) return <div className="container mt-5">Загрузка...</div>;
-  if (error || !order) return <div className="container mt-5 text-danger">{error}</div>;
+  if (error || !order)
+    return <div className="container mt-5 text-danger">{error}</div>;
 
   const o = order.orderDto;
 
@@ -42,14 +48,16 @@ export default function OrderDetailsPage() {
 
   // изменение количества
   const increase = (itemId: number) => {
-    setItems(prev =>
-      prev.map(i => (i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i))
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i
+      )
     );
   };
 
   const decrease = (itemId: number) => {
-    setItems(prev =>
-      prev.map(i =>
+    setItems((prev) =>
+      prev.map((i) =>
         i.id === itemId && i.quantity > 1
           ? { ...i, quantity: i.quantity - 1 }
           : i
@@ -64,15 +72,15 @@ export default function OrderDetailsPage() {
       await updateOrder(o.id, {
         userId: user?.userId,
         totalPrice,
-        items: items.map(i => ({
+        items: items.map((i) => ({
           item: i.item,
-          quantity: i.quantity
-        }))
+          quantity: i.quantity,
+        })),
       });
 
-      alert("Order updated");
+      setToast({ type: "success", message: "Order updated successfully" });
     } catch {
-      alert("Ошибка при обновлении заказа");
+      setToast({ type: "error", message: "Ошибка при обновлении заказа" });
     } finally {
       setSaving(false);
     }
@@ -89,11 +97,17 @@ export default function OrderDetailsPage() {
         className="card p-4 shadow-sm rounded-4 mb-4"
         style={{ background: "linear-gradient(135deg, #fff, #f3f4ff)" }}
       >
-        <h4 className="fw-bold" style={{ color: "#4e54c8" }}>Customer</h4>
-        <p className="fw-semibold mt-2">{order.name} {order.surname}</p>
+        <h4 className="fw-bold" style={{ color: "#4e54c8" }}>
+          Customer
+        </h4>
+        <p className="fw-semibold mt-2">
+          {order.name} {order.surname}
+        </p>
         <p className="text-muted">{order.email}</p>
 
-        <h4 className="fw-bold mt-4" style={{ color: "#4e54c8" }}>Order Info</h4>
+        <h4 className="fw-bold mt-4" style={{ color: "#4e54c8" }}>
+          Order Info
+        </h4>
 
         <p className="mt-2">
           Status:{" "}
@@ -104,7 +118,7 @@ export default function OrderDetailsPage() {
                   ? "#ff8c42"
                   : o.status === "PAID"
                   ? "#4cd137"
-                  : "#4e54c8"
+                  : "#4e54c8",
             }}
           >
             {o.status}
@@ -121,16 +135,18 @@ export default function OrderDetailsPage() {
       </div>
 
       {/* Товары */}
-      <h4 className="fw-bold mb-3" style={{ color: "#4e54c8" }}>Items</h4>
+      <h4 className="fw-bold mb-3" style={{ color: "#4e54c8" }}>
+        Items
+      </h4>
 
       <ul className="list-group">
-        {items.map(item => (
+        {items.map((item) => (
           <li
             key={item.id}
             className="list-group-item d-flex justify-content-between align-items-center rounded-4 mb-3 shadow-sm"
             style={{
               background: "linear-gradient(135deg, #f8f9fa, #eef1ff)",
-              borderLeft: "6px solid #8f94fb"
+              borderLeft: "6px solid #8f94fb",
             }}
           >
             <div>
@@ -158,7 +174,7 @@ export default function OrderDetailsPage() {
                     backgroundColor: "#4e54c8",
                     color: "white",
                     minWidth: "40px",
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   {item.quantity}
@@ -193,6 +209,28 @@ export default function OrderDetailsPage() {
         >
           {saving ? "Saving..." : "Save changes"}
         </button>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className="toast show position-fixed bottom-0 end-0 m-4 text-white border-0"
+          style={{
+            backgroundColor:
+              toast.type === "success" ? "#28a745" : "#dc3545",
+            minWidth: "260px",
+            zIndex: 9999,
+          }}
+        >
+          <div className="d-flex">
+            <div className="toast-body fw-semibold">{toast.message}</div>
+            <button
+              type="button"
+              className="btn-close btn-close-white me-2 m-auto"
+              onClick={() => setToast(null)}
+            ></button>
+          </div>
+        </div>
       )}
     </div>
   );

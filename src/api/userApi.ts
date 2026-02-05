@@ -6,7 +6,7 @@ const BASE_URL = "/api/user";
 export async function getUsers(params: GetUsersParams): Promise<UserPage> {
   const {
     page,
-    size,
+    limit,
     firstName = "",
     surname = "",
   } = params;
@@ -15,7 +15,7 @@ export async function getUsers(params: GetUsersParams): Promise<UserPage> {
     const response = await api.get<UserPage>(`${BASE_URL}/all`, {
       params: {
         page,
-        size,
+        limit,
         firstName: firstName.trim() || null,
         surname: surname.trim() || null,
       },

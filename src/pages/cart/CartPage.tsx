@@ -4,6 +4,7 @@ import { createOrder, getOrdersByUserId } from "../../api/orderApi";
 import { extractErrorMessage } from "../../utils/errorUtils";
 import { useEffect, useState } from "react";
 import PaymentModal from "../../pages/payment/PaymentModal";
+import { Link } from "react-router-dom";
 
 export default function CartPage() {
   const { cart, updateQuantity, clearCart } = useCart();
@@ -188,9 +189,14 @@ export default function CartPage() {
             >
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <h5 className="fw-bold" style={{ color: "#4e54c8" }}>
+                  <Link
+                    to={`/order/${o.orderDto.id}`}
+                    className="fw-bold"
+                    style={{ color: "#4e54c8", textDecoration: "none" }}
+                  >
                     Order #{o.orderDto.id}
-                  </h5>
+                  </Link>
+
                   <p className="mb-0 text-muted">
                     Status:{" "}
                     <span className="fw-semibold">{o.orderDto.status}</span>

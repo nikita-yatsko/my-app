@@ -15,7 +15,7 @@ export default function AdminOrdersPage() {
 
   // Пагинация
   const [page, setPage] = useState(0);
-  const [limit] = useState(10);
+  const [limit] = useState(5);
   const [totalPages, setTotalPages] = useState(0);
 
   const loadOrders = () => {
