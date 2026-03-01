@@ -13,6 +13,7 @@ import Layout from "./utils/Layout";
 import AdminOrdersPage from "./pages/order/AdminOrdersPage";
 import OrderDetailsPage from "./pages/order/OrderDetailsPage";
 import PaymentsPage from "./pages/payment/PaymentsPage";
+import Cards from "./pages/card/Cards";
 
 export default function App() {
   return (
@@ -26,6 +27,8 @@ export default function App() {
           <Route path="/users" element={ <RequireRole roles={["ADMIN"]}> <Users /> </RequireRole>}/>
           <Route path="/user/:id" element={ <RequireRole roles={["ADMIN"]}> <UserDetails /> </RequireRole> } />
           <Route path="/account" element={<RequireRole roles={["USER", "ADMIN"]}> <UserDetails /> </RequireRole>} />
+
+           <Route path="/cards" element={ <RequireRole roles={["ADMIN"]}> <Cards /> </RequireRole>} />
 
           <Route path="/items" element={<RequireRole roles={["ADMIN", "USER"]}> <Items /> </RequireRole>} />
           <Route path="/items/add" element={ <RequireRole roles={["ADMIN"]}> <AddItem /> </RequireRole>} />

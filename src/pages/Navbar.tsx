@@ -33,6 +33,12 @@ export default function Navbar() {
           )}
 
           {user?.role === "ADMIN" && (
+            <Link to="/cards" className="btn btn-light fw-bold" style={{ color: "#4e54c8" }} >
+              Card
+            </Link>
+          )}
+
+          {user?.role === "ADMIN" && (
             <Link to="/orders" className="btn btn-light fw-bold" style={{ color: "#4e54c8" }} >
               Orders
             </Link>

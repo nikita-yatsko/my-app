@@ -22,6 +22,4 @@ export interface CardPage {
 
 export interface GetCardsParams {
   holder?: string;
-  firstName?: string;
-  surname?: string;
 }
